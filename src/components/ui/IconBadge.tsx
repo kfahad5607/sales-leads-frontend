@@ -1,10 +1,10 @@
 import clsx from "clsx";
-import { IconType } from "react-icons";
+import { ReactNode } from "react";
 
 type Variant = "green" | "gray";
 interface Props {
   label: string;
-  Icon: IconType;
+  icon: ReactNode;
   variant?: Variant;
 }
 
@@ -24,7 +24,7 @@ const variantStyles: Record<
   },
 };
 
-const IconBadge = ({ label, variant = "green", Icon }: Props) => {
+const IconBadge = ({ label, variant = "green", icon }: Props) => {
   const { bgColor, textColor, borderColor } = variantStyles[variant];
 
   return (
@@ -36,7 +36,7 @@ const IconBadge = ({ label, variant = "green", Icon }: Props) => {
         borderColor
       )}
     >
-      <Icon className="text-[11px]" />
+      <span className="text-[11px]">{icon}</span>
       <span>{label}</span>
     </div>
   );
