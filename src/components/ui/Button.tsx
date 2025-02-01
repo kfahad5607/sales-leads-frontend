@@ -9,7 +9,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const baseStyles =
-  "inline-flex items-center gap-2 px-3 py-2 border rounded-lg  transition-all cursor-pointer focus:outline-none";
+  "inline-flex items-center gap-2 px-3 py-2 border rounded-lg transition-all cursor-pointer outline-none";
 const variantStyles: Record<Variant, string> = {
   primary: "bg-[#6A1BE0] text-white border-[#6A1BE0] hover:bg-[#6A1BE0]",
   "outlined-primary":

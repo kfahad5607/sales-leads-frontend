@@ -1,3 +1,4 @@
+import { FilteringParams, PaginationParams, SortingParams } from "@/types/api";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -41,4 +42,26 @@ export const getInitials = (fullName: string): string => {
     names.length > 1 ? names[names.length - 1].charAt(0) : firstInitial;
 
   return (firstInitial + lastInitial).toUpperCase();
+};
+
+export const capitalize = (str: string): string => {
+  if (str.length === 0) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+export const queryKeys = {
+  base: "leads" as const,
+  leads: (
+    pagination: PaginationParams,
+    filtering: FilteringParams,
+    sorting: SortingParams
+  ) => {
+    return [
+      queryKeys.base,
+      pagination.page,
+      pagination.pageSize,
+      filtering.query,
+      sorting,
+    ] as const;
+  },
 };

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/shadcn/select";
 
 interface Props {
-  label: string;
+  label?: string;
   options: { value: string; label: string }[];
   placeholder?: string;
   selectedValue: string;
@@ -25,12 +25,12 @@ const Select = ({
 }: Props) => {
   return (
     <BaseSelect value={selectedValue} onValueChange={onChange}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger>
         <SelectValue placeholder={placeholder || selectedValue} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>{label}</SelectLabel>
+          {label && <SelectLabel>{label}</SelectLabel>}
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}

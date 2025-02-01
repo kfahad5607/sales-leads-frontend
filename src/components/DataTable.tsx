@@ -1,14 +1,15 @@
 import { LuEllipsisVertical, LuPlus, LuSearch } from "react-icons/lu";
 
 import { debounce } from "@/lib/utils";
-import { RequiredPaginationParams } from "@/services/leadService";
 import clsx from "clsx";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
-import { Pagination } from "../types/api";
-import Button from "./ui/Button";
-import Checkbox from "./ui/Checkbox";
-import Select from "./ui/Select";
+import { Pagination, RequiredPaginationParams } from "../types/api";
+import Button from "@/components/ui/Button";
+// import Checkbox from "@/components/ui/Checkbox_";
+import { Checkbox } from "@/components/ui/shadcn/checkbox";
+import DropdownMenu from "@/components/ui/DropdownMenu";
+import Select from "@/components/ui/Select";
 
 interface Column<T> {
   title: string;
@@ -23,10 +24,12 @@ interface Column<T> {
 type BaseProps<T> = {
   columns: Column<T>[];
   data: T[] | undefined;
-  renderKey?: keyof T;
+  idKey: keyof T;
   isLoading: boolean;
   // error: Error | null;
   searchQuery: string;
+  onEdit: (data: T) => void;
+  onDelete: (data: T) => void;
   onSearch: (query: string) => void;
 };
 
@@ -98,8 +101,16 @@ const pageSizeOptions = [
   { value: "100", label: "100 per page" },
 ];
 
+const rowActionOptions = [
+  { value: "edit", label: "Edit" },
+  { value: "delete", label: "Delete" },
+];
+
 const DataTable = <TItem,>(props: Props<TItem>) => {
-  const { columns, data = [], renderKey, onSearch } = props;
+  const { columns, data = [], idKey, onSearch, onEdit, onDelete } = props;
+  const [selectedRows, setSelectedRows] = useState<Set<TItem[typeof idKey]>>(
+    new Set()
+  );
 
   let pagination: Pagination | null = null;
   let onPagination = (pagination: RequiredPaginationParams) => {};
@@ -143,13 +154,50 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
     });
   };
 
+  const onRowActionSelect = (action: string, row: TItem) => {
+    if (action === "edit") {
+      onEdit(row);
+    } else if (action === "delete") {
+      onDelete(row);
+    }
+  };
+
+  const handleToggleAll = () => {
+    if (isAllSelected()) {
+      setSelectedRows(new Set());
+    } else {
+      const allRowIds = data.map((row) => row[idKey]);
+      setSelectedRows(new Set(allRowIds));
+    }
+  };
+
+  const handleRowToggle = (val: boolean | string, id: TItem[typeof idKey]) => {
+    const newSelectedRows = new Set(selectedRows);
+
+    if (val) {
+      newSelectedRows.add(id);
+    } else {
+      newSelectedRows.delete(id);
+    }
+
+    setSelectedRows(newSelectedRows);
+  };
+
+  const isAllSelected = () => {
+    return selectedRows.size === data.length;
+  };
+
+  const isSomeSelected = () => {
+    return !isAllSelected() && selectedRows.size > 0;
+  };
+
   const handleSearchInput = debounce(onSearch, 450);
 
   return (
     <div>
       {/* Head starts */}
       <div className="mb-4">
-        <div className="flex justify-between items-center mb-6">
+        <div className="hidden justify-between items-center mb-6">
           <div className="text-3xl font-semibold leading-10 font-fraunces">
             Leads
           </div>
@@ -189,12 +237,20 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
             <thead className="font-normal border-b border-[#DBDADD]">
               <tr className="px-4 py-1">
                 <th className="w-14 py-1.5 pr-2.5">
-                  <Checkbox id="select-all" />
+                  <div className="flex items-center justify-center">
+                    <Checkbox
+                      id="select-all"
+                      checked={
+                        isAllSelected() || (isSomeSelected() && "indeterminate")
+                      }
+                      onCheckedChange={handleToggleAll}
+                    />
+                  </div>
                 </th>
                 {columns.map((col, colIdx) => (
                   <th
                     key={colIdx}
-                    className="w-auto font-normal text-left text-xs text-[#646069] py-1.5 pr-2.5"
+                    className="w-auto font-normal text-left text-xs text-[#646069] py-2.5 pr-2.5"
                   >
                     {col.title}
                   </th>
@@ -205,11 +261,17 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
             <tbody>
               {data.map((item, itemIdx) => (
                 <tr
-                  key={getRenderKeyVal(item, renderKey, itemIdx)}
+                  key={getRenderKeyVal(item, idKey, itemIdx)}
                   className="border-b border-[#DBDADD]"
                 >
                   <td className="px-4 py-3">
-                    <Checkbox id={`select-item-${itemIdx}`} />
+                    <Checkbox
+                      id={`select-item-${itemIdx}`}
+                      checked={selectedRows.has(item[idKey])}
+                      onCheckedChange={(val) =>
+                        handleRowToggle(val, item[idKey])
+                      }
+                    />
                   </td>
                   {columns.map((col, colIdx) => (
                     <td key={colIdx} className="pr-2.5 py-3">
@@ -217,9 +279,19 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                     </td>
                   ))}
                   <td className="w-9 py-3">
-                    <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
-                      <LuEllipsisVertical className="text-[#646069] text" />
-                    </div>
+                    <DropdownMenu
+                      triggerBtn={
+                        <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
+                          <LuEllipsisVertical className="text-[#646069] text" />
+                        </div>
+                      }
+                      label="Actions"
+                      options={rowActionOptions}
+                      onSelect={(val) => {
+                        onRowActionSelect(val, item);
+                      }}
+                      onClose={() => {}}
+                    />
                   </td>
                 </tr>
               ))}

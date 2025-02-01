@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { LeadCreate, Lead } from "../schemas/leads";
+import {
+  LeadCreateSchema,
+  LeadSchema,
+  LeadCreateWithOptIdSchema,
+} from "../schemas/leads";
 
-export type LeadCreate = z.infer<typeof LeadCreate>;
-export type Lead = z.infer<typeof Lead>;
+export type LeadCreateWithOptId = z.infer<typeof LeadCreateWithOptIdSchema>;
+export type LeadCreate = z.infer<typeof LeadCreateSchema>;
+export type Lead = z.infer<typeof LeadSchema>;

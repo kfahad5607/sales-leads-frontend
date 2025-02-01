@@ -1,6 +1,20 @@
 import { z } from "zod";
 
-const LeadBase = z.object({
+
+export const LEAD_STAGE_NAMES = [
+  "lost",
+  "new",
+  "contacted",
+  "qualified",
+  "converted",
+] as const;
+
+export const LEAD_STAGE_MAP = LEAD_STAGE_NAMES.reduce((acc, stage, index) => {
+  acc[stage] = index;
+  return acc;
+}, {} as Record<(typeof LEAD_STAGE_NAMES)[number], number>);
+
+const LeadBaseSchema = z.object({
   name: z
     .string()
     .max(100, "Name must be 100 characters or less")
@@ -14,7 +28,8 @@ const LeadBase = z.object({
     .string()
     .max(150, "Company name must be 150 characters or less")
     .nonempty("Company name is required"),
-  engaged: z.boolean().default(false),
+  is_engaged: z.boolean().default(false),
+  stage: z.enum(LEAD_STAGE_NAMES),
   last_contacted_at: z
     .string()
     .nullable()
@@ -23,7 +38,7 @@ const LeadBase = z.object({
     }),
 });
 
-export const Lead = LeadBase.extend({
+export const LeadSchema = LeadBaseSchema.extend({
   id: z.string().uuid("Invalid UUID format"),
   created_at: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Created at must be a valid datetime",
@@ -33,4 +48,7 @@ export const Lead = LeadBase.extend({
   }),
 });
 
-export const LeadCreate = LeadBase;
+export const LeadCreateSchema = LeadBaseSchema;
+export const LeadCreateWithOptIdSchema = LeadCreateSchema.extend({
+  id: z.string().uuid("Invalid UUID format").optional(),
+});
