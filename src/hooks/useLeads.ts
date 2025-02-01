@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   getLeads,
   PaginationParams,
@@ -6,11 +6,9 @@ import {
 } from "../services/leadService";
 
 export const queryKeys = {
-  base: "venues" as const,
-  venues: (query: string, page: number) =>
-    [queryKeys.base, query, page] as const,
-  venue: (id: number) => [queryKeys.base, id] as const,
-  seriesVenues: (id: number) => ["seriesVenues", id] as const,
+  base: "leads" as const,
+  leads: (pagination: PaginationParams) =>
+    [queryKeys.base, pagination.page, pagination.pageSize] as const,
 };
 
 export const useLeads = (
@@ -18,8 +16,10 @@ export const useLeads = (
   sorting: SortingParams
 ) => {
   return useQuery({
-    queryKey: ["leads"],
+    queryKey: queryKeys.leads(pagination),
     queryFn: () => getLeads(pagination, sorting),
-    retry: 0,
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 };

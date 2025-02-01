@@ -7,6 +7,8 @@ export type PaginationParams = {
   pageSize?: number;
 };
 
+export type RequiredPaginationParams = Required<PaginationParams>;
+
 type SortingParamItem = {
   sortBy: string;
   sortOrder: "asc" | "desc";
