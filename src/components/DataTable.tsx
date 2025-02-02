@@ -10,6 +10,7 @@ import { Pagination, RequiredPaginationParams } from "../types/api";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import Select from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/shadcn/checkbox";
+import Spinner from "@/components/ui/Spinner";
 
 export interface Column<T> {
   title: string;
@@ -154,30 +155,23 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
   };
 
   const getPaginationMsg = () => {
-    if (isLoading) {
-      return (
-        <div className="font-medium text-xs text-[#646069] mb-2">
-          Fetching new leads...
-        </div>
-      );
-    }
+    let message = "";
 
-    if (pagination) {
-      return (
-        <div className="font-medium text-xs text-[#646069] mb-2">
-          Showing {firstRecord}-{lastRecord} of {pagination.total_records} leads
-        </div>
-      );
+    if (isLoading) {
+      message = "Fetching new leads...";
+    } else if (pagination) {
+      message = `Showing ${firstRecord}-${lastRecord} of ${pagination.total_records} leads`;
+    } else {
+      message = `Showing all the ${data.length} leads`;
     }
 
     return (
-      <div className="font-medium text-xs text-[#646069] mb-2">
-        Showing all the {data.length} leads
-      </div>
+      <div className="font-medium text-xs text-[#646069] mb-2">{message}</div>
     );
   };
 
   const handleSearchInput = debounce(onSearch, 450);
+  const isPlaceholderData = isLoading && data.length > 0;
 
   return (
     <div>
@@ -221,6 +215,13 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
               </ButtonShadcn>
             </div>
           )}
+          {isPlaceholderData && (
+            <div className="absolute inset-0 bg-white/50">
+              <div className="flex justify-center mt-24">
+                <Spinner />
+              </div>
+            </div>
+          )}
           <table className="w-full">
             <thead className="font-normal border-b border-[#DBDADD]">
               <tr className="px-4 py-1">
@@ -252,7 +253,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                 <th scope="col" className="w-9 text-left py-1.5"></th>
               </tr>
             </thead>
-            {isLoading ? (
+            {isLoading && !isPlaceholderData ? (
               <tbody>
                 {generateArray(10).map((item, itemIdx) => (
                   <tr key={item} className="border-b border-[#DBDADD]">

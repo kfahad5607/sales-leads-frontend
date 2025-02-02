@@ -167,7 +167,7 @@ const AllLeads = () => {
   const filterParams = { query };
   const sortKeys = sortBy ? sortBy.split(",").map((s) => s.trim()) : [];
 
-  const { data, isLoading, error } = useLeads(
+  const { data, isPlaceholderData, isLoading, error } = useLeads(
     paginationParams,
     filterParams,
     sortBy
@@ -343,7 +343,7 @@ const AllLeads = () => {
         data={data?.data}
         columns={columns}
         searchQuery={query}
-        isLoading={isLoading}
+        isLoading={isLoading || isPlaceholderData}
         idKey="id"
         selectedRowIds={selectedRowIds}
         sortKeys={sortKeys}
