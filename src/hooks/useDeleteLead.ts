@@ -27,8 +27,6 @@ const useDeleteLead = (
   return useMutation<{}, AxiosError<ErrorResponse>, Lead["id"]>({
     mutationFn: deleteLead,
     onSuccess: (_, leadId) => {
-      console.log("leadIdleadIdleadIdleadId ", leadId);
-
       const queryKey = queryKeys.leads(
         paginationParams,
         filterParams,

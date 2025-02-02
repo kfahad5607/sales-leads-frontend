@@ -34,22 +34,33 @@ const useSaveLead = (
         return createLead(data);
       }
     },
-    onSuccess: (updatedLead) => {
+    onSuccess: (savedLead, newLead) => {
       const queryKey = queryKeys.leads(
         paginationParams,
         filterParams,
         sortByParams
       );
-      queryClient.setQueryData(queryKey, (oldLeads: unknown) => {
-        if (!oldLeads) return [];
-        const _oldLeads = oldLeads as PaginatedResponse<Lead>;
 
-        _oldLeads.data = _oldLeads.data.map((lead) =>
-          lead.id === updatedLead.id ? updatedLead : lead
-        );
+      if (newLead.id) {
+        queryClient.setQueryData(queryKey, (oldLeads: unknown) => {
+          if (!oldLeads) return [];
+          const _oldLeads = oldLeads as PaginatedResponse<Lead>;
 
-        return _oldLeads;
-      });
+          _oldLeads.data = _oldLeads.data.map((lead) =>
+            lead.id === savedLead.id ? savedLead : lead
+          );
+
+          return _oldLeads;
+        });
+      } else {
+        queryClient.setQueryData(queryKey, (oldLeads: unknown) => {
+          if (!oldLeads) return [];
+          const _oldLeads = oldLeads as PaginatedResponse<Lead>;
+          _oldLeads.data = [savedLead, ..._oldLeads.data];
+
+          return _oldLeads;
+        });
+      }
     },
     onError: (error) => {
       console.error("Error saving lead:", error);

@@ -214,7 +214,6 @@ const AllLeads = () => {
   };
 
   const onEdit = (lead: Lead) => {
-    console.log("Ediitit ", lead.id);
     setLeadData(lead);
     setShowForm(true);
   };
@@ -319,8 +318,6 @@ const AllLeads = () => {
   };
 
   const onSort = (colKey: keyof Lead, isMultiMode: boolean) => {
-    console.log("isMultiMode ", isMultiMode);
-
     const ascColKey = colKey.toString();
     const descColKey = "-" + ascColKey;
 

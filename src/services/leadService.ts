@@ -44,8 +44,6 @@ export const exportLeads = async (
   const res = await apiClient.get(url, {
     responseType: "blob",
   });
-  console.log("res ", typeof res);
-
   const blob = new Blob([res.data], { type: "text/csv" });
   const blobUrl = window.URL.createObjectURL(blob);
 
