@@ -45,3 +45,8 @@ export const deleteLead = async (leadId: Lead["id"]): Promise<Lead> => {
   const response = await apiClient.delete(`leads/${leadId}`);
   return response.data;
 };
+
+export const bulkDeleteLeads = async (leadIds: Lead["id"][]): Promise<Lead> => {
+  const response = await apiClient.post("leads/bulk-delete", { ids: leadIds });
+  return response.data;
+};

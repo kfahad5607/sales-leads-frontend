@@ -1,15 +1,16 @@
 import { LuEllipsisVertical, LuPlus, LuSearch } from "react-icons/lu";
 
-import { debounce } from "@/lib/utils";
+import Button from "@/components/ui/Button";
+import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
+import { debounce, generatePagination } from "@/lib/utils";
 import clsx from "clsx";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { Pagination, RequiredPaginationParams } from "../types/api";
-import Button from "@/components/ui/Button";
 // import Checkbox from "@/components/ui/Checkbox_";
-import { Checkbox } from "@/components/ui/shadcn/checkbox";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import Select from "@/components/ui/Select";
+import { Checkbox } from "@/components/ui/shadcn/checkbox";
 
 interface Column<T> {
   title: string;
@@ -28,8 +29,12 @@ type BaseProps<T> = {
   isLoading: boolean;
   // error: Error | null;
   searchQuery: string;
+  selectedRowIds: Set<unknown>;
+  onRowSelect: (data: T, selection: boolean) => void;
+  onAllRowSelect: (selection: boolean) => void;
   onEdit: (data: T) => void;
   onDelete: (data: T) => void;
+  onBulkDelete: () => void;
   onSearch: (query: string) => void;
 };
 
@@ -54,46 +59,6 @@ const getRenderKeyVal = <T,>(
   return JSON.stringify(item[key]);
 };
 
-export const generatePagination = (
-  currentPage: number,
-  pageSize: number,
-  totalRecords: number
-) => {
-  const totalPages = Math.ceil(totalRecords / pageSize);
-  const maxButtons = 7;
-  const buttons = [];
-
-  if (totalPages === 1) return [];
-
-  const addRange = (start: number, end: number) => {
-    for (let i = start; i <= end; i++) {
-      buttons.push(i);
-    }
-  };
-
-  if (totalPages <= maxButtons) {
-    addRange(1, totalPages);
-  } else {
-    if (currentPage <= 4) {
-      addRange(1, 5);
-      buttons.push("...");
-      buttons.push(totalPages);
-    } else if (currentPage >= totalPages - 3) {
-      buttons.push(1);
-      buttons.push("...");
-      addRange(totalPages - 4, totalPages);
-    } else {
-      buttons.push(1);
-      buttons.push("...");
-      addRange(currentPage - 1, currentPage + 1);
-      buttons.push("...");
-      buttons.push(totalPages);
-    }
-  }
-
-  return buttons;
-};
-
 const pageSizeOptions = [
   { value: "10", label: "10 per page" },
   { value: "25", label: "25 per page" },
@@ -107,10 +72,18 @@ const rowActionOptions = [
 ];
 
 const DataTable = <TItem,>(props: Props<TItem>) => {
-  const { columns, data = [], idKey, onSearch, onEdit, onDelete } = props;
-  const [selectedRows, setSelectedRows] = useState<Set<TItem[typeof idKey]>>(
-    new Set()
-  );
+  const {
+    columns,
+    data = [],
+    idKey,
+    selectedRowIds,
+    onRowSelect,
+    onAllRowSelect,
+    onSearch,
+    onEdit,
+    onDelete,
+    onBulkDelete,
+  } = props;
 
   let pagination: Pagination | null = null;
   let onPagination = (pagination: RequiredPaginationParams) => {};
@@ -163,32 +136,38 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
   };
 
   const handleToggleAll = () => {
-    if (isAllSelected()) {
-      setSelectedRows(new Set());
-    } else {
-      const allRowIds = data.map((row) => row[idKey]);
-      setSelectedRows(new Set(allRowIds));
-    }
+    onAllRowSelect(isAllSelected());
+    // if (isAllSelected()) {
+    //   // setSelectedRows(new Set());
+    // } else {
+    //   const allRowIds = data.map((row) => row[idKey]);
+    //   // setSelectedRows(new Set(allRowIds));
+    // }
   };
 
-  const handleRowToggle = (val: boolean | string, id: TItem[typeof idKey]) => {
-    const newSelectedRows = new Set(selectedRows);
+  const handleRowToggle = (item: TItem, val: boolean | string) => {
+    onRowSelect(item, Boolean(val));
+    // const newSelectedRows = new Set(selectedRows);
 
-    if (val) {
-      newSelectedRows.add(id);
-    } else {
-      newSelectedRows.delete(id);
-    }
+    // if (val) {
+    //   newSelectedRows.add(id);
+    // } else {
+    //   newSelectedRows.delete(id);
+    // }
 
-    setSelectedRows(newSelectedRows);
+    // setSelectedRows(newSelectedRows);
   };
 
   const isAllSelected = () => {
-    return selectedRows.size === data.length;
+    return selectedRowIds.size === data.length;
   };
 
   const isSomeSelected = () => {
-    return !isAllSelected() && selectedRows.size > 0;
+    return !isAllSelected() && isAtleastOneSelected();
+  };
+
+  const isAtleastOneSelected = () => {
+    return selectedRowIds.size > 0;
   };
 
   const handleSearchInput = debounce(onSearch, 450);
@@ -214,7 +193,6 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
             <input
               type="search"
               onChange={(e) => {
-                console.log("e.target ", e.currentTarget.value);
                 const val = e.currentTarget.value.trim();
                 handleSearchInput(val);
               }}
@@ -232,7 +210,14 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
             leads
           </div>
         )}
-        <div className="bg-white rounded-lg border border-[#DBDADD]">
+        <div className="relative bg-white rounded-lg border border-[#DBDADD]">
+          {isAtleastOneSelected() && (
+            <div className="flex items-center h-9 bg-white px-2 absolute top-0 left-10 right-0">
+              <ButtonShadcn onClick={onBulkDelete} variant="link" size="sm">
+                Bulk Delete
+              </ButtonShadcn>
+            </div>
+          )}
           <table className="w-full">
             <thead className="font-normal border-b border-[#DBDADD]">
               <tr className="px-4 py-1">
@@ -267,10 +252,8 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                   <td className="px-4 py-3">
                     <Checkbox
                       id={`select-item-${itemIdx}`}
-                      checked={selectedRows.has(item[idKey])}
-                      onCheckedChange={(val) =>
-                        handleRowToggle(val, item[idKey])
-                      }
+                      checked={selectedRowIds.has(item[idKey])}
+                      onCheckedChange={(val) => onRowSelect(item, Boolean(val))}
                     />
                   </td>
                   {columns.map((col, colIdx) => (

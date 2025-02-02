@@ -11,7 +11,7 @@ import { AxiosError } from "axios";
 import { deleteLead } from "../services/leadService";
 import { queryKeys } from "@/lib/utils";
 
-export const useDeleteLead = (
+const useDeleteLead = (
   pagination: PaginationParams,
   filtering: FilteringParams,
   sorting: SortingParams
@@ -35,3 +35,5 @@ export const useDeleteLead = (
     },
   });
 };
+
+export default useDeleteLead;

@@ -1,6 +1,6 @@
 import { toast } from "@/hooks/use-toast";
 import { useDatatableSearchParams } from "@/hooks/useDatatableSearchParams";
-import { useSaveLead } from "@/hooks/useSaveLead";
+import useSaveLead from "@/hooks/useSaveLead";
 import { capitalize, cn, formatDateToLocal } from "@/lib/utils";
 import { LEAD_STAGE_NAMES, LeadCreateWithOptIdSchema } from "@/schemas/leads";
 import { LeadCreateWithOptId } from "@/types/leads";

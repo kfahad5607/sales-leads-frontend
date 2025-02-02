@@ -3,7 +3,7 @@ import { getLeads } from "../services/leadService";
 import { FilteringParams, PaginationParams, SortingParams } from "@/types/api";
 import { queryKeys } from "@/lib/utils";
 
-export const useLeads = (
+const useLeads = (
   pagination: PaginationParams,
   filtering: FilteringParams,
   sorting: SortingParams
@@ -16,3 +16,5 @@ export const useLeads = (
     retry: 1,
   });
 };
+
+export default useLeads;

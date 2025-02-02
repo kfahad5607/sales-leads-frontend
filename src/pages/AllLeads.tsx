@@ -7,15 +7,16 @@ import IconBadge from "@/components/ui/IconBadge";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
 import { toast } from "@/hooks/use-toast";
+import { useBulkDeleteLeads } from "@/hooks/useBulkDeleteLeads";
 import { useDatatableSearchParams } from "@/hooks/useDatatableSearchParams";
-import { useDeleteLead } from "@/hooks/useDeleteLead";
+import useDeleteLead from "@/hooks/useDeleteLead";
+import useLeads from "@/hooks/useLeads";
 import { formatDateToLocal, getInitials } from "@/lib/utils";
 import { LEAD_STAGE_MAP, LEAD_STAGE_NAMES } from "@/schemas/leads";
 import { Lead, LeadCreateWithOptId } from "@/types/leads";
 import { useState } from "react";
 import { FaRegClock } from "react-icons/fa";
 import { LuPlus } from "react-icons/lu";
-import { useLeads } from "../hooks/useLeads";
 
 type DeleteItemInfo = Pick<Lead, "id" | "email">;
 
@@ -100,8 +101,12 @@ const AllLeads = () => {
   const [leadData, setLeadData] =
     useState<LeadCreateWithOptId>(getEmptyLeadData);
   const [showForm, setShowForm] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [deleteItemInfo, setDeleteItemInfo] = useState<DeleteItemInfo | null>(
     null
+  );
+  const [selectedRowIds, setSelectedRowIds] = useState<Set<Lead["id"]>>(
+    new Set()
   );
   const { query, page, pageSize, updatePagination, updateSearch } =
     useDatatableSearchParams();
@@ -126,6 +131,7 @@ const AllLeads = () => {
     },
     []
   );
+  const { mutate: mutateBulkDelete } = useBulkDeleteLeads();
 
   if (isLoading) return <h3 className="text-5xl my-3">Loading...</h3>;
   if (error) return <h3 className="text-5xl my-3">ERROR: {error.message}</h3>;
@@ -160,8 +166,11 @@ const AllLeads = () => {
     setShowForm(true);
   };
 
+  const onBulkDelete = () => {
+    setShowBulkDeleteDialog(true);
+  };
+
   const onDelete = (lead: Lead) => {
-    console.log("onDelete ", lead);
     setDeleteItemInfo({
       id: lead.id,
       email: lead.email,
@@ -198,12 +207,58 @@ const AllLeads = () => {
           });
         },
       });
+      setDeleteItemInfo(null);
+    } else if (selectedRowIds.size > 0) {
+      mutateBulkDelete(Array.from(selectedRowIds), {
+        onError: (error: any) => {
+          let errorMsg = "Could not delete the lead(s), please try again!";
+          if (error.response?.data && error.response.data.error) {
+            errorMsg = error.response.data.error;
+          } else if (error.message) {
+            errorMsg = error.message;
+          }
+
+          toast({
+            variant: "destructive",
+            description: errorMsg,
+            duration: 2500,
+          });
+        },
+        onSuccess: () => {
+          setSelectedRowIds(new Set());
+          toast({
+            duration: 2500,
+            description: <div>Leads were deleted successfully.</div>,
+          });
+        },
+      });
+
+      setShowBulkDeleteDialog(false);
     }
-    setDeleteItemInfo(null);
   };
 
   const onDeleteCancel = () => {
     setDeleteItemInfo(null);
+    setShowBulkDeleteDialog(false);
+  };
+
+  const onRowSelect = (lead: Lead, selection: boolean) => {
+    const newSelectedRowIds = new Set(selectedRowIds);
+    if (selection) {
+      newSelectedRowIds.add(lead.id);
+    } else {
+      newSelectedRowIds.delete(lead.id);
+    }
+    setSelectedRowIds(newSelectedRowIds);
+  };
+
+  const onAllRowSelect = (selection: boolean) => {
+    if (selection) {
+      setSelectedRowIds(new Set());
+    } else {
+      const allRowIds = data.data.map((row) => row.id);
+      setSelectedRowIds(new Set(allRowIds));
+    }
   };
 
   const isEdit = "id" in leadData;
@@ -225,11 +280,15 @@ const AllLeads = () => {
         columns={columns}
         searchQuery={query}
         isLoading={isLoading}
+        idKey="id"
+        selectedRowIds={selectedRowIds}
+        onAllRowSelect={onAllRowSelect}
+        onRowSelect={onRowSelect}
         onEdit={onEdit}
         onDelete={onDelete}
+        onBulkDelete={onBulkDelete}
         onSearch={updateSearch}
         onPagination={updatePagination}
-        idKey="id"
         {...{ pagination }}
       />
       {/* Lead Form Dialog Starts */}
@@ -245,7 +304,6 @@ const AllLeads = () => {
       {/* Lead Form Dialog Starts */}
       <Dialog
         title="Confirm Deletion"
-        // description="Leads are found in noodles"
         open={Boolean(deleteItemInfo)}
         onClose={onDeleteCancel}
       >
@@ -257,6 +315,35 @@ const AllLeads = () => {
             </span>
             ?
           </p>
+          <div className="flex justify-end mt-5">
+            <div className="flex gap-x-3">
+              <ButtonShadcn
+                onClick={onDeleteCancel}
+                variant="default"
+                type="button"
+              >
+                Cancel
+              </ButtonShadcn>
+              <ButtonShadcn
+                onClick={onDeleteConfirm}
+                variant="destructive"
+                type="button"
+              >
+                Delete
+              </ButtonShadcn>
+            </div>
+          </div>
+        </div>
+      </Dialog>
+      {/*  Delete Lead Confirm Dialog Ends */}
+      {/* Lead Form Dialog Starts */}
+      <Dialog
+        title="Confirm Deletion"
+        open={showBulkDeleteDialog}
+        onClose={onDeleteCancel}
+      >
+        <div>
+          <p>Are you sure you want to delete all the selected leads?</p>
           <div className="flex justify-end mt-5">
             <div className="flex gap-x-3">
               <ButtonShadcn
