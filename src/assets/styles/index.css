@@ -16,11 +16,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@theme {
-  --font-inter: "Inter", "sans-serif";
-  --font-fraunces: "Fraunces", "sans-serif";
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
