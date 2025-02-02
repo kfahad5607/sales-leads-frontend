@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/shadcn/select";
+import { forwardRef } from "react";
 
 interface Props {
   label?: string;
@@ -16,30 +17,27 @@ interface Props {
   onChange: (value: string) => void;
 }
 
-const Select = ({
-  label,
-  options,
-  placeholder,
-  selectedValue,
-  onChange,
-}: Props) => {
-  return (
-    <BaseSelect value={selectedValue} onValueChange={onChange}>
-      <SelectTrigger>
-        <SelectValue placeholder={placeholder || selectedValue} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {label && <SelectLabel>{label}</SelectLabel>}
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </BaseSelect>
-  );
-};
+const Select = forwardRef<HTMLButtonElement, Props>(
+  ({ label, options, placeholder, selectedValue, onChange }: Props, ref) => {
+    return (
+      <BaseSelect value={selectedValue} onValueChange={onChange}>
+        <SelectTrigger ref={ref}>
+          <SelectValue placeholder={placeholder || selectedValue} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {label && <SelectLabel>{label}</SelectLabel>}
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </BaseSelect>
+    );
+  }
+);
+Select.displayName = "Select";
 
 export default Select;

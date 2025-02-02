@@ -4,13 +4,13 @@ import { FilteringParams, PaginationParams, SortByParams } from "@/types/api";
 import { queryKeys } from "@/lib/utils";
 
 const useLeads = (
-  pagination: PaginationParams,
-  filtering: FilteringParams,
-  sortBy: SortByParams
+  paginationParams: PaginationParams,
+  filterParams: FilteringParams,
+  sortByParams: SortByParams
 ) => {
   return useQuery({
-    queryKey: queryKeys.leads(pagination, filtering, sortBy),
-    queryFn: () => getLeads(pagination, filtering, sortBy),
+    queryKey: queryKeys.leads(paginationParams, filterParams, sortByParams),
+    queryFn: () => getLeads(paginationParams, filterParams, sortByParams),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: 1,

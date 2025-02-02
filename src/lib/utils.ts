@@ -97,16 +97,16 @@ export const generatePagination = (
 export const queryKeys = {
   base: "leads" as const,
   leads: (
-    pagination: PaginationParams,
-    filtering: FilteringParams,
-    sorting: SortByParams
+    paginationParams: PaginationParams,
+    filterParams: FilteringParams,
+    sortByParams: SortByParams
   ) => {
     return [
       queryKeys.base,
-      pagination.page,
-      pagination.pageSize,
-      filtering.query,
-      sorting,
+      paginationParams.page,
+      paginationParams.pageSize,
+      filterParams.query,
+      sortByParams,
     ] as const;
   },
 };

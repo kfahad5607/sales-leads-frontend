@@ -12,9 +12,9 @@ import { deleteLead } from "../services/leadService";
 import { queryKeys } from "@/lib/utils";
 
 const useDeleteLead = (
-  pagination: PaginationParams,
-  filtering: FilteringParams,
-  sorting: SortByParams
+  paginationParams: PaginationParams,
+  filterParams: FilteringParams,
+  sortByParams: SortByParams
 ) => {
   const queryClient = useQueryClient();
   return useMutation<{}, AxiosError<ErrorResponse>, Lead["id"]>({
@@ -22,7 +22,11 @@ const useDeleteLead = (
     onSuccess: (_, leadId) => {
       console.log("leadIdleadIdleadIdleadId ", leadId);
 
-      const queryKey = queryKeys.leads(pagination, filtering, sorting);
+      const queryKey = queryKeys.leads(
+        paginationParams,
+        filterParams,
+        sortByParams
+      );
       queryClient.setQueryData(queryKey, (oldLeads: unknown) => {
         if (!oldLeads) return [];
         const _oldLeads = oldLeads as PaginatedResponse<Lead>;

@@ -1,4 +1,6 @@
 import DataTable, { Column } from "@/components/DataTable";
+import { MdOutlineDownloadForOffline } from "react-icons/md";
+
 import LeadForm from "@/components/LeadForm";
 import Button from "@/components/ui/Button";
 import Dialog from "@/components/ui/Dialog";
@@ -12,6 +14,7 @@ import useDeleteLead from "@/hooks/useDeleteLead";
 import useLeads from "@/hooks/useLeads";
 import { formatDateToLocal, generateArray, getInitials } from "@/lib/utils";
 import { LEAD_STAGE_MAP, LEAD_STAGE_NAMES } from "@/schemas/leads";
+import { exportLeads } from "@/services/leadService";
 import { Lead, LeadCreateWithOptId } from "@/types/leads";
 import { useState } from "react";
 import { FaRegClock } from "react-icons/fa";
@@ -193,8 +196,6 @@ const AllLeads = () => {
   };
 
   const onAdd = () => {
-    console.log("onAdd");
-
     setLeadData(getEmptyLeadData);
     setShowForm(true);
   };
@@ -328,17 +329,7 @@ const AllLeads = () => {
 
   return (
     <div className="bg-stone-100 min-h-screen py-10 px-12 mx-auto font-inter">
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-3xl font-semibold leading-10 font-fraunces">
-          Leads
-        </div>
-        <div className="flex gap-x-3">
-          <Button onClick={onAdd} icon={<LuPlus />} variant="outlined-primary">
-            Add Lead
-          </Button>
-          <Button icon={<LuPlus />}>Export All</Button>
-        </div>
-      </div>
+      <LeadsHeader onAdd={onAdd} />
       <DataTable
         data={data?.data}
         columns={columns}
@@ -357,7 +348,7 @@ const AllLeads = () => {
         onPagination={updatePagination}
         {...{ pagination }}
       />
-      {/* Lead Form Dialog Starts */}
+      {/* Lead Form Dialog */}
       <Dialog
         title={isEdit ? "Edit Lead" : "Add a Lead"}
         description="Manage lead details to streamline your sales efforts"
@@ -366,8 +357,7 @@ const AllLeads = () => {
       >
         <LeadForm data={leadData} isEdit={isEdit} onSuccess={onFormSuccess} />
       </Dialog>
-      {/* Delete Lead Confirm Dialog Ends */}
-      {/* Lead Form Dialog Starts */}
+      {/* Confirm Single Delete Dialog */}
       <Dialog
         title="Confirm Deletion"
         open={Boolean(deleteItemInfo)}
@@ -401,8 +391,7 @@ const AllLeads = () => {
           </div>
         </div>
       </Dialog>
-      {/*  Delete Lead Confirm Dialog Ends */}
-      {/* Lead Form Dialog Starts */}
+      {/* Confirm Bulk Delete Dialog */}
       <Dialog
         title="Confirm Deletion"
         open={showBulkDeleteDialog}
@@ -430,7 +419,43 @@ const AllLeads = () => {
           </div>
         </div>
       </Dialog>
-      {/*  Delete Lead Confirm Dialog Ends */}
+    </div>
+  );
+};
+
+interface LeadsHeaderProps {
+  onAdd: () => void;
+}
+
+const LeadsHeader = ({ onAdd }: LeadsHeaderProps) => {
+  const [isExportLoading, setIsExportLoading] = useState(false);
+  const { query, sortBy } = useDatatableSearchParams();
+  const filterParams = { query };
+
+  const onExport = async () => {
+    console.log("onExport ");
+    setIsExportLoading(true);
+    await exportLeads(filterParams, sortBy);
+    setIsExportLoading(false);
+  };
+
+  return (
+    <div className="flex justify-between items-center mb-6">
+      <div className="text-3xl font-semibold leading-10 font-fraunces">
+        Leads
+      </div>
+      <div className="flex gap-x-3">
+        <Button onClick={onAdd} icon={<LuPlus />} variant="outlined-primary">
+          Add Lead
+        </Button>
+        <Button
+          onClick={onExport}
+          icon={<MdOutlineDownloadForOffline />}
+          disabled={isExportLoading}
+        >
+          Export All
+        </Button>
+      </div>
     </div>
   );
 };

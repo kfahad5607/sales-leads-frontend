@@ -47,17 +47,11 @@ const leadStageOptions = LEAD_STAGE_NAMES.map((stage) => {
 
 const LeadForm = ({ data, isEdit, onSuccess }: Props) => {
   const [formError, setFormError] = useState("");
-  const { query, page, pageSize } = useDatatableSearchParams();
-  const { mutate } = useSaveLead(
-    {
-      page,
-      pageSize,
-    },
-    {
-      query,
-    },
-    []
-  );
+  const { query, page, pageSize, sortBy } = useDatatableSearchParams();
+  const paginationParams = { page, pageSize };
+  const filterParams = { query };
+  const { mutate } = useSaveLead(paginationParams, filterParams, sortBy);
+
   const form = useForm<LeadCreateWithOptId>({
     resolver: zodResolver(LeadCreateWithOptIdSchema),
     values: data,
@@ -228,12 +222,14 @@ const LeadForm = ({ data, isEdit, onSuccess }: Props) => {
                 <FormItem className="flex flex-col justify-around">
                   <FormLabel>Engagement</FormLabel>
                   <FormControl>
-                    <div>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </div>
+                    <Switch
+                      ref={field.ref}
+                      name={field.name}
+                      disabled={field.disabled}
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
                   </FormControl>
                 </FormItem>
               )}
