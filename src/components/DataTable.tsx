@@ -109,7 +109,9 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
   } = props;
 
   let pagination: Pagination | null = null;
-  let onPagination = (pagination: RequiredPaginationParams) => {};
+  let onPagination = (pagination: RequiredPaginationParams) => {
+    pagination;
+  };
   let paginationButtons: (string | number)[] = [];
   let lastPage = 10;
   let firstRecord = 1;
