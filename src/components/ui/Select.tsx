@@ -20,7 +20,7 @@ interface Props {
 const Select = forwardRef<HTMLButtonElement, Props>(
   ({ label, options, placeholder, selectedValue, onChange }: Props, ref) => {
     return (
-      <BaseSelect value={selectedValue} onValueChange={onChange}>
+      <BaseSelect defaultValue={selectedValue} onValueChange={onChange}>
         <SelectTrigger ref={ref}>
           <SelectValue placeholder={placeholder || selectedValue} />
         </SelectTrigger>

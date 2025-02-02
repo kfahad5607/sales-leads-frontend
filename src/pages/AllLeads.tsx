@@ -193,10 +193,6 @@ const AllLeads = () => {
   const { mutate } = useDeleteLead(paginationParams, filterParams, sortBy);
   const { mutate: mutateBulkDelete } = useBulkDeleteLeads();
 
-  console.log("error ", error);
-
-  // if (error) return <h3 className="text-5xl my-3">ERROR: {error.message}</h3>;
-
   const pagination = data
     ? {
         total_records: data.total_records,
@@ -285,7 +281,11 @@ const AllLeads = () => {
           setSelectedRowIds(new Set());
           toast({
             duration: 2500,
-            description: <div>Leads were deleted successfully.</div>,
+            description: (
+              <div>
+                {selectedRowIds.size} Lead(s) were deleted successfully.
+              </div>
+            ),
           });
         },
       });
@@ -421,7 +421,10 @@ const AllLeads = () => {
         onClose={onDeleteCancel}
       >
         <div>
-          <p>Are you sure you want to delete all the selected leads?</p>
+          <p>
+            Are you sure you want to delete all {selectedRowIds.size} selected
+            leads?
+          </p>
           <div className="flex justify-end mt-5">
             <div className="flex gap-x-3">
               <ButtonShadcn

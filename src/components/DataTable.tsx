@@ -197,8 +197,6 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
       message = `Showing all the ${data.length} leads.`;
     }
 
-    console.log("messagemessage ", message);
-
     return (
       <div
         className={cn(
@@ -222,15 +220,15 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
           pagination?.page_size || DEFAULT_PAGINATION.page_size
         ).map((item, itemIdx) => (
           <tr key={item} className="border-b border-[#DBDADD]">
-            <td className="px-4 py-3">
+            <td className="px-4 py-3 whitespace-nowrap text-center">
               <Checkbox id={`select-item-${itemIdx}`} disabled />
             </td>
             {columns.map((col, colIdx) => (
-              <td key={colIdx} className="pr-2.5 py-3">
+              <td key={colIdx} className="pr-2.5 py-3 whitespace-nowrap">
                 {col.renderLoader()}
               </td>
             ))}
-            <td className="w-9 py-3">
+            <td className="w-9 py-3 whitespace-nowrap">
               <div className="flex items-center justify-center size-6 p-1 rounded-full opacity-60 pointer-events-none">
                 <LuEllipsisVertical className="text-[#646069] text" />
               </div>
@@ -244,7 +242,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
       <tbody>
         <tr className="bg-white dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
           <td
-            className="p-4 h-24 text-center"
+            className="p-4 h-24 text-center whitespace-nowrap"
             colSpan={columns.length + EXTRA_COLUMNS}
           >
             No results.
@@ -260,7 +258,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
             key={getRenderKeyVal(item, idKey, itemIdx)}
             className="border-b border-[#DBDADD]"
           >
-            <td className="px-4 py-3">
+            <td className="px-4 py-3 whitespace-nowrap text-center">
               <Checkbox
                 id={`select-item-${itemIdx}`}
                 checked={selectedRowIds.has(item[idKey])}
@@ -268,11 +266,11 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
               />
             </td>
             {columns.map((col, colIdx) => (
-              <td key={colIdx} className="pr-2.5 py-3">
+              <td key={colIdx} className="pr-2.5 py-3 whitespace-nowrap">
                 {getRenderer(col)(item[col.dataKey], item, itemIdx)}
               </td>
             ))}
-            <td className="w-9 py-3">
+            <td className="w-9 py-3 whitespace-nowrap">
               <DropdownMenu
                 triggerBtn={
                   <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
@@ -327,13 +325,6 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
       <div>
         {getMsg()}
         <div className="relative bg-white rounded-lg border border-[#DBDADD] overflow-hidden">
-          {isAtleastOneSelected() && (
-            <div className="flex items-center h-9 bg-white px-2 absolute top-0 left-10 right-0">
-              <ButtonShadcn onClick={onBulkDelete} variant="link" size="sm">
-                Bulk Delete
-              </ButtonShadcn>
-            </div>
-          )}
           {isPlaceholderData && (
             <div className="absolute inset-0 bg-white/50">
               <div className="flex justify-center mt-24">
@@ -341,39 +332,56 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
               </div>
             </div>
           )}
-          <table className="w-full">
-            <thead className="font-normal border-b border-[#DBDADD]">
-              <tr className="px-4 py-1">
-                <th scope="col" className="w-14 py-1.5 pr-2.5">
-                  <div className="flex items-center justify-center">
-                    <Checkbox
-                      id="select-all"
-                      disabled={isLoading}
-                      checked={
-                        isAllSelected() || (isSomeSelected() && "indeterminate")
-                      }
-                      onCheckedChange={() => onAllRowSelect(isAllSelected())}
-                    />
-                  </div>
-                </th>
-                {columns.map((col, colIdx) => (
-                  <th
-                    scope="col"
-                    key={colIdx}
-                    onClick={(e) => onSort(col.dataKey, e.ctrlKey || e.metaKey)}
-                    className="w-auto font-normal text-left text-xs text-[#646069] py-2.5 pr-2.5 cursor-pointer transition-colors duration-200 ease-out hover:bg-slate-100"
-                  >
-                    <div className="flex items-center">
-                      <span>{col.title}</span>
-                      {getColSortIndicator(sortKeys, col.dataKey)}
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="font-normal border-b border-[#DBDADD]">
+                <tr className="relative px-4 py-1">
+                  <th scope="col" className="w-14 px-4 py-3">
+                    <div className="flex items-center justify-center">
+                      <Checkbox
+                        id="select-all"
+                        className="z-10"
+                        disabled={isLoading}
+                        checked={
+                          isAllSelected() ||
+                          (isSomeSelected() && "indeterminate")
+                        }
+                        onCheckedChange={() => onAllRowSelect(isAllSelected())}
+                      />
+                      {isAtleastOneSelected() && (
+                        <div className="flex items-center h-9 bg-white px-2 absolute right-0 left-7 md:left-8 lg:left-10">
+                          <ButtonShadcn
+                            onClick={onBulkDelete}
+                            variant="link"
+                            size="sm"
+                          >
+                            Bulk Delete
+                          </ButtonShadcn>
+                        </div>
+                      )}
                     </div>
                   </th>
-                ))}
-                <th scope="col" className="w-9 text-left py-1.5"></th>
-              </tr>
-            </thead>
-            {tableBody}
-          </table>
+                  {columns.map((col, colIdx) => (
+                    <th
+                      scope="col"
+                      key={colIdx}
+                      onClick={(e) =>
+                        onSort(col.dataKey, e.ctrlKey || e.metaKey)
+                      }
+                      className="w-auto font-normal text-left text-xs text-[#646069] py-2.5 pr-2.5 cursor-pointer transition-colors duration-200 ease-out hover:bg-slate-100"
+                    >
+                      <div className="flex items-center">
+                        <span>{col.title}</span>
+                        {getColSortIndicator(sortKeys, col.dataKey)}
+                      </div>
+                    </th>
+                  ))}
+                  <th scope="col" className="w-9 text-left py-1.5"></th>
+                </tr>
+              </thead>
+              {tableBody}
+            </table>
+          </div>
           {pagination && (
             <div className="flex justify-between items-center py-2 px-2">
               <div>

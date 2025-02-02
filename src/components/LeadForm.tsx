@@ -71,7 +71,6 @@ const LeadForm = ({ data, isEdit, onSuccess }: Props) => {
   });
 
   function onSubmit(data: LeadCreateWithOptId) {
-    console.log("onSubmit ", data);
     setFormError("");
     mutate(data, {
       onError: (error: any) => {
