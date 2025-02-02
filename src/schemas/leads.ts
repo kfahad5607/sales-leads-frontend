@@ -17,7 +17,7 @@ export const LEAD_STAGE_MAP = LEAD_STAGE_NAMES.reduce((acc, stage, index) => {
 const LeadBaseSchema = z.object({
   name: z
     .string()
-    .max(100, "Name must be 100 characters or less")
+    .max(150, "Name must be 150 characters or less")
     .nonempty("Name is required"),
   email: z
     .string()
@@ -39,7 +39,7 @@ const LeadBaseSchema = z.object({
 });
 
 export const LeadSchema = LeadBaseSchema.extend({
-  id: z.string().uuid("Invalid UUID format"),
+  id: z.number().positive(),
   created_at: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Created at must be a valid datetime",
   }),
@@ -50,5 +50,5 @@ export const LeadSchema = LeadBaseSchema.extend({
 
 export const LeadCreateSchema = LeadBaseSchema;
 export const LeadCreateWithOptIdSchema = LeadCreateSchema.extend({
-  id: z.string().uuid("Invalid UUID format").optional(),
+  id: z.number().positive().optional(),
 });
