@@ -2,7 +2,7 @@ import {
   FilteringParams,
   PaginatedResponse,
   PaginationParams,
-  SortingParams,
+  SortByParams,
 } from "../types/api";
 import { Lead, LeadCreate } from "../types/leads";
 import apiClient from "./api-client";
@@ -10,19 +10,16 @@ import apiClient from "./api-client";
 export const getLeads = async (
   pagination: PaginationParams,
   filtering: FilteringParams,
-  sorting: SortingParams
+  sortBy: SortByParams
 ) => {
   const { page = 1, pageSize = 10 } = pagination;
   let url = `leads?page=${page}&page_size=${pageSize}`;
   if (filtering.query) {
     url = `${url}&query=${filtering.query}`;
   }
-  const sortKey = sorting.map((sortItem) => {
-    let prefix = sortItem.sortOrder === "desc" ? "-" : "";
-
-    return `${prefix}${sortItem.sortBy}`;
-  });
-  console.log("sortKey ", sortKey);
+  if (sortBy) {
+    url = `${url}&sort_by=${sortBy}`;
+  }
 
   const res = await apiClient.get<PaginatedResponse<Lead>>(url);
 

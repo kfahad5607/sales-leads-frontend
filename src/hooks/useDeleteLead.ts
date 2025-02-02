@@ -3,7 +3,7 @@ import {
   FilteringParams,
   PaginatedResponse,
   PaginationParams,
-  SortingParams,
+  SortByParams,
 } from "@/types/api";
 import { Lead } from "@/types/leads";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,7 +14,7 @@ import { queryKeys } from "@/lib/utils";
 const useDeleteLead = (
   pagination: PaginationParams,
   filtering: FilteringParams,
-  sorting: SortingParams
+  sorting: SortByParams
 ) => {
   const queryClient = useQueryClient();
   return useMutation<{}, AxiosError<ErrorResponse>, Lead["id"]>({

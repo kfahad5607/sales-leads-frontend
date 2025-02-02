@@ -23,9 +23,4 @@ export type PaginationParams = {
 };
 
 export type RequiredPaginationParams = Required<PaginationParams>;
-
-type SortingParamItem = {
-  sortBy: string;
-  sortOrder: "asc" | "desc";
-};
-export type SortingParams = SortingParamItem[];
+export type SortByParams = string;

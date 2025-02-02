@@ -1,4 +1,4 @@
-import { FilteringParams, PaginationParams, SortingParams } from "@/types/api";
+import { FilteringParams, PaginationParams, SortByParams } from "@/types/api";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -94,7 +94,7 @@ export const queryKeys = {
   leads: (
     pagination: PaginationParams,
     filtering: FilteringParams,
-    sorting: SortingParams
+    sorting: SortByParams
   ) => {
     return [
       queryKeys.base,

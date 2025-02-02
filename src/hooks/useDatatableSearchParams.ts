@@ -13,6 +13,7 @@ export const useDatatableSearchParams = () => {
   const query = searchParams.get("query") || "";
   const page = Math.max(parseInt(searchParams.get("page") || "1"), 1);
   const pageSize = Math.max(parseInt(searchParams.get("pageSize") || "10"), 10);
+  const sortBy = searchParams.get("sort_by") || "";
 
   const updateSearch = (query: string) => {
     setSearchParams(() => {
@@ -37,10 +38,21 @@ export const useDatatableSearchParams = () => {
     });
   };
 
+  const updateSort = (sortBy: string) => {
+    setSearchParams((prevParams) => {
+      const newParams = new URLSearchParams(prevParams);
+      newParams.set("sort_by", sortBy);
+
+      return newParams;
+    });
+  };
+
   return {
     query,
     page,
     pageSize,
+    sortBy,
+    updateSort,
     updatePagination,
     updateSearch,
   };

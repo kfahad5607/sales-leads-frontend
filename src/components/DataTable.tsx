@@ -1,13 +1,12 @@
-import { LuEllipsisVertical, LuPlus, LuSearch } from "react-icons/lu";
-
 import Button from "@/components/ui/Button";
 import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
 import { debounce, generatePagination } from "@/lib/utils";
 import clsx from "clsx";
 import { ReactNode } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
+import { FaSortDown, FaSortUp } from "react-icons/fa";
+import { LuEllipsisVertical, LuPlus, LuSearch } from "react-icons/lu";
 import { Pagination, RequiredPaginationParams } from "../types/api";
-// import Checkbox from "@/components/ui/Checkbox_";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import Select from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/shadcn/checkbox";
@@ -30,6 +29,8 @@ type BaseProps<T> = {
   // error: Error | null;
   searchQuery: string;
   selectedRowIds: Set<unknown>;
+  sortKeys: string[];
+  onSort: (colKey: keyof T, isMultiMode: boolean) => void;
   onRowSelect: (data: T, selection: boolean) => void;
   onAllRowSelect: (selection: boolean) => void;
   onEdit: (data: T) => void;
@@ -77,6 +78,8 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
     data = [],
     idKey,
     selectedRowIds,
+    sortKeys,
+    onSort,
     onRowSelect,
     onAllRowSelect,
     onSearch,
@@ -133,29 +136,6 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
     } else if (action === "delete") {
       onDelete(row);
     }
-  };
-
-  const handleToggleAll = () => {
-    onAllRowSelect(isAllSelected());
-    // if (isAllSelected()) {
-    //   // setSelectedRows(new Set());
-    // } else {
-    //   const allRowIds = data.map((row) => row[idKey]);
-    //   // setSelectedRows(new Set(allRowIds));
-    // }
-  };
-
-  const handleRowToggle = (item: TItem, val: boolean | string) => {
-    onRowSelect(item, Boolean(val));
-    // const newSelectedRows = new Set(selectedRows);
-
-    // if (val) {
-    //   newSelectedRows.add(id);
-    // } else {
-    //   newSelectedRows.delete(id);
-    // }
-
-    // setSelectedRows(newSelectedRows);
   };
 
   const isAllSelected = () => {
@@ -228,16 +208,20 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                       checked={
                         isAllSelected() || (isSomeSelected() && "indeterminate")
                       }
-                      onCheckedChange={handleToggleAll}
+                      onCheckedChange={() => onAllRowSelect(isAllSelected())}
                     />
                   </div>
                 </th>
                 {columns.map((col, colIdx) => (
                   <th
                     key={colIdx}
-                    className="w-auto font-normal text-left text-xs text-[#646069] py-2.5 pr-2.5"
+                    onClick={(e) => onSort(col.dataKey, e.ctrlKey || e.metaKey)}
+                    className="w-auto font-normal text-left text-xs text-[#646069] py-2.5 pr-2.5 cursor-pointer transition-colors duration-200 ease-out hover:bg-slate-100"
                   >
-                    {col.title}
+                    <div className="flex items-center">
+                      <span>{col.title}</span>
+                      {getColSortIndicator(sortKeys, col.dataKey)}
+                    </div>
                   </th>
                 ))}
                 <th className="w-9 text-left py-1.5"></th>
@@ -330,6 +314,24 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
       </div>
     </div>
   );
+};
+
+const getColSortIndicator = (sortKeys: string[], colKey: unknown) => {
+  if (sortKeys.includes(`${colKey}`)) {
+    return (
+      <div className="ml-1.5 mt-1 align-middle">
+        <FaSortUp />
+      </div>
+    );
+  } else if (sortKeys.includes(`-${colKey}`)) {
+    return (
+      <div className="ml-1.5 mb-1 align-middle">
+        <FaSortDown />
+      </div>
+    );
+  }
+
+  return null;
 };
 
 const getPaginationBtnClass = (

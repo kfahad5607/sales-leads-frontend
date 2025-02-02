@@ -108,29 +108,26 @@ const AllLeads = () => {
   const [selectedRowIds, setSelectedRowIds] = useState<Set<Lead["id"]>>(
     new Set()
   );
-  const { query, page, pageSize, updatePagination, updateSearch } =
-    useDatatableSearchParams();
+  const {
+    query,
+    page,
+    pageSize,
+    sortBy,
+    updatePagination,
+    updateSearch,
+    updateSort,
+  } = useDatatableSearchParams();
+
+  const paginationParams = { page, pageSize };
+  const filterParams = { query };
+  const sortKeys = sortBy ? sortBy.split(",").map((s) => s.trim()) : [];
 
   const { data, isLoading, error } = useLeads(
-    {
-      page,
-      pageSize,
-    },
-    {
-      query,
-    },
-    []
+    paginationParams,
+    filterParams,
+    sortBy
   );
-  const { mutate } = useDeleteLead(
-    {
-      page,
-      pageSize,
-    },
-    {
-      query,
-    },
-    []
-  );
+  const { mutate } = useDeleteLead(paginationParams, filterParams, sortBy);
   const { mutate: mutateBulkDelete } = useBulkDeleteLeads();
 
   if (isLoading) return <h3 className="text-5xl my-3">Loading...</h3>;
@@ -261,7 +258,32 @@ const AllLeads = () => {
     }
   };
 
+  const onSort = (colKey: keyof Lead, isMultiMode: boolean) => {
+    console.log("isMultiMode ", isMultiMode);
+
+    const ascColKey = colKey.toString();
+    const descColKey = "-" + ascColKey;
+
+    let currentSortKeyIdx = sortKeys.findIndex((sortKey) =>
+      [ascColKey, descColKey].includes(sortKey)
+    );
+
+    if (currentSortKeyIdx === -1) {
+      sortKeys.push(ascColKey);
+      currentSortKeyIdx = sortKeys.length - 1;
+    } else {
+      sortKeys[currentSortKeyIdx] =
+        sortKeys[currentSortKeyIdx][0] === "-" ? ascColKey : descColKey;
+    }
+    if (isMultiMode) {
+      updateSort(sortKeys.join(","));
+    } else {
+      updateSort(sortKeys[currentSortKeyIdx]);
+    }
+  };
+
   const isEdit = "id" in leadData;
+
   return (
     <div className="bg-stone-100 min-h-screen py-10 px-12 mx-auto font-inter">
       <div className="flex justify-between items-center mb-6">
@@ -282,6 +304,8 @@ const AllLeads = () => {
         isLoading={isLoading}
         idKey="id"
         selectedRowIds={selectedRowIds}
+        sortKeys={sortKeys}
+        onSort={onSort}
         onAllRowSelect={onAllRowSelect}
         onRowSelect={onRowSelect}
         onEdit={onEdit}
