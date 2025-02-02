@@ -1,3 +1,7 @@
+// React Query
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Types
 import {
   ErrorResponse,
   FilteringParams,
@@ -6,9 +10,12 @@ import {
   SortByParams,
 } from "@/types/api";
 import { Lead } from "@/types/leads";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Services
 import { AxiosError } from "axios";
 import { deleteLead } from "../services/leadService";
+
+// Utilities
 import { queryKeys } from "@/lib/utils";
 
 const useDeleteLead = (

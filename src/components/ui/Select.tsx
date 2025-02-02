@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import {
   Select as BaseSelect,
   SelectContent,
@@ -7,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/shadcn/select";
-import { forwardRef } from "react";
 
 interface Props {
   label?: string;

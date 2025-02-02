@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 interface Props {
   totalBars: number;
@@ -12,11 +12,11 @@ function generateArray(n: number) {
 
 const ProgressBar = ({ totalBars, filledBars, className = "h-4" }: Props) => {
   return (
-    <div className={clsx("inline-flex gap-x-0.5", className)}>
+    <div className={cn("inline-flex gap-x-0.5", className)}>
       {generateArray(totalBars).map((j) => (
         <div
           key={j}
-          className={clsx(
+          className={cn(
             "w-1 h-full rounded-sm",
             j <= filledBars ? "bg-[#7B2FF8]" : "bg-[#DBDADD]"
           )}

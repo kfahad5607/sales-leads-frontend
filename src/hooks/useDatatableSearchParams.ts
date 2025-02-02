@@ -1,5 +1,7 @@
+// React
 import { useSearchParams } from "react-router-dom";
-import {} from "../services/leadService";
+
+// Types
 import { PaginationParams, RequiredPaginationParams } from "@/types/api";
 
 export const queryKeys = {

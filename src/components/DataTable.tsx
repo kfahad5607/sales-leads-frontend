@@ -1,16 +1,31 @@
-import Button from "@/components/ui/Button";
-import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
-import { debounce, generateArray, generatePagination } from "@/lib/utils";
-import clsx from "clsx";
+// React
 import { ReactNode } from "react";
+
+// Icons
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { FaSortDown, FaSortUp } from "react-icons/fa";
 import { LuEllipsisVertical, LuPlus, LuSearch } from "react-icons/lu";
-import { Pagination, RequiredPaginationParams } from "../types/api";
+
+// Components
+import Button from "@/components/ui/Button";
+import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
 import DropdownMenu from "@/components/ui/DropdownMenu";
 import Select from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/shadcn/checkbox";
 import Spinner from "@/components/ui/Spinner";
+
+// Utilities
+import { cn, debounce, generateArray, generatePagination } from "@/lib/utils";
+import { DEFAULT_PAGINATION } from "@/lib/constants";
+
+// Types
+import { Pagination, RequiredPaginationParams } from "@/types/api";
+
+// Services
+import { isAxiosError } from "axios";
+
+// Checkbox and actions column
+const EXTRA_COLUMNS = 2;
 
 export interface Column<T> {
   title: string;
@@ -28,7 +43,7 @@ type BaseProps<T> = {
   data: T[] | undefined;
   idKey: keyof T;
   isLoading: boolean;
-  // error: Error | null;
+  error: Error | null;
   searchQuery: string;
   selectedRowIds: Set<unknown>;
   sortKeys: string[];
@@ -82,6 +97,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
     searchQuery,
     selectedRowIds,
     sortKeys,
+    error,
     isLoading,
     onSort,
     onRowSelect,
@@ -99,7 +115,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
   let firstRecord = 1;
   let lastRecord = 10;
 
-  if ("pagination" in props && props.pagination) {
+  if ("pagination" in props && props.pagination && data.length > 0) {
     pagination = props.pagination;
     onPagination = props.onPagination;
 
@@ -154,24 +170,127 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
     return selectedRowIds.size > 0;
   };
 
-  const getPaginationMsg = () => {
+  const getMsg = () => {
     let message = "";
 
     if (isLoading) {
       message = "Fetching new leads...";
+    } else if (error) {
+      message = "Could not create the lead, please try again!";
+
+      if (isAxiosError(error)) {
+        message = error.response?.data.error || message;
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      message = `Error: ${message}`;
+    } else if (selectedRowIds.size > 0) {
+      const pageLastRecord =
+        lastRecord -
+        ((pagination?.current_page || DEFAULT_PAGINATION.current_page) - 1) *
+          (pagination?.page_size || DEFAULT_PAGINATION.page_size);
+      message = `${selectedRowIds.size} of ${pageLastRecord} row(s) selected.`;
     } else if (pagination) {
-      message = `Showing ${firstRecord}-${lastRecord} of ${pagination.total_records} leads`;
+      message = `Showing ${firstRecord}-${lastRecord} of ${pagination.total_records} leads.`;
     } else {
-      message = `Showing all the ${data.length} leads`;
+      message = `Showing all the ${data.length} leads.`;
     }
 
+    console.log("messagemessage ", message);
+
     return (
-      <div className="font-medium text-xs text-[#646069] mb-2">{message}</div>
+      <div
+        className={cn(
+          "font-medium text-xs text-[#646069] mb-2",
+          error && "text-destructive"
+        )}
+      >
+        {message}
+      </div>
     );
   };
 
   const handleSearchInput = debounce(onSearch, 450);
   const isPlaceholderData = isLoading && data.length > 0;
+
+  let tableBody = <tbody></tbody>;
+  if (isLoading && !isPlaceholderData) {
+    tableBody = (
+      <tbody>
+        {generateArray(
+          pagination?.page_size || DEFAULT_PAGINATION.page_size
+        ).map((item, itemIdx) => (
+          <tr key={item} className="border-b border-[#DBDADD]">
+            <td className="px-4 py-3">
+              <Checkbox id={`select-item-${itemIdx}`} disabled />
+            </td>
+            {columns.map((col, colIdx) => (
+              <td key={colIdx} className="pr-2.5 py-3">
+                {col.renderLoader()}
+              </td>
+            ))}
+            <td className="w-9 py-3">
+              <div className="flex items-center justify-center size-6 p-1 rounded-full opacity-60 pointer-events-none">
+                <LuEllipsisVertical className="text-[#646069] text" />
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    );
+  } else if (data.length === 0) {
+    tableBody = (
+      <tbody>
+        <tr className="bg-white dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+          <td
+            className="p-4 h-24 text-center"
+            colSpan={columns.length + EXTRA_COLUMNS}
+          >
+            No results.
+          </td>
+        </tr>
+      </tbody>
+    );
+  } else {
+    tableBody = (
+      <tbody>
+        {data.map((item, itemIdx) => (
+          <tr
+            key={getRenderKeyVal(item, idKey, itemIdx)}
+            className="border-b border-[#DBDADD]"
+          >
+            <td className="px-4 py-3">
+              <Checkbox
+                id={`select-item-${itemIdx}`}
+                checked={selectedRowIds.has(item[idKey])}
+                onCheckedChange={(val) => onRowSelect(item, Boolean(val))}
+              />
+            </td>
+            {columns.map((col, colIdx) => (
+              <td key={colIdx} className="pr-2.5 py-3">
+                {getRenderer(col)(item[col.dataKey], item, itemIdx)}
+              </td>
+            ))}
+            <td className="w-9 py-3">
+              <DropdownMenu
+                triggerBtn={
+                  <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
+                    <LuEllipsisVertical className="text-[#646069] text" />
+                  </div>
+                }
+                label="Actions"
+                options={rowActionOptions}
+                onSelect={(val) => {
+                  onRowActionSelect(val, item);
+                }}
+              />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    );
+  }
 
   return (
     <div>
@@ -206,8 +325,8 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
       </div>
       {/* Head ends */}
       <div>
-        {getPaginationMsg()}
-        <div className="relative bg-white rounded-lg border border-[#DBDADD]">
+        {getMsg()}
+        <div className="relative bg-white rounded-lg border border-[#DBDADD] overflow-hidden">
           {isAtleastOneSelected() && (
             <div className="flex items-center h-9 bg-white px-2 absolute top-0 left-10 right-0">
               <ButtonShadcn onClick={onBulkDelete} variant="link" size="sm">
@@ -253,66 +372,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                 <th scope="col" className="w-9 text-left py-1.5"></th>
               </tr>
             </thead>
-            {isLoading && !isPlaceholderData ? (
-              <tbody>
-                {generateArray(10).map((item, itemIdx) => (
-                  <tr key={item} className="border-b border-[#DBDADD]">
-                    <td className="px-4 py-3">
-                      <Checkbox id={`select-item-${itemIdx}`} disabled />
-                    </td>
-                    {columns.map((col, colIdx) => (
-                      <td key={colIdx} className="pr-2.5 py-3">
-                        {col.renderLoader()}
-                      </td>
-                    ))}
-                    <td className="w-9 py-3">
-                      <div className="flex items-center justify-center size-6 p-1 rounded-full opacity-60 pointer-events-none">
-                        <LuEllipsisVertical className="text-[#646069] text" />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            ) : (
-              <tbody>
-                {data.map((item, itemIdx) => (
-                  <tr
-                    key={getRenderKeyVal(item, idKey, itemIdx)}
-                    className="border-b border-[#DBDADD]"
-                  >
-                    <td className="px-4 py-3">
-                      <Checkbox
-                        id={`select-item-${itemIdx}`}
-                        checked={selectedRowIds.has(item[idKey])}
-                        onCheckedChange={(val) =>
-                          onRowSelect(item, Boolean(val))
-                        }
-                      />
-                    </td>
-                    {columns.map((col, colIdx) => (
-                      <td key={colIdx} className="pr-2.5 py-3">
-                        {getRenderer(col)(item[col.dataKey], item, itemIdx)}
-                      </td>
-                    ))}
-                    <td className="w-9 py-3">
-                      <DropdownMenu
-                        triggerBtn={
-                          <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
-                            <LuEllipsisVertical className="text-[#646069] text" />
-                          </div>
-                        }
-                        label="Actions"
-                        options={rowActionOptions}
-                        onSelect={(val) => {
-                          onRowActionSelect(val, item);
-                        }}
-                        onClose={() => {}}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            )}
+            {tableBody}
           </table>
           {pagination && (
             <div className="flex justify-between items-center py-2 px-2">
@@ -339,7 +399,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                       type="button"
                       key={btnIdx}
                       onClick={() => handlePageClick(btn)}
-                      className={clsx(
+                      className={cn(
                         "flex justify-center items-center size-8 rounded-lg cursor-pointer select-none transition-colors ease-out duration-200",
                         getPaginationBtnClass(pagination.current_page, btn)
                       )}

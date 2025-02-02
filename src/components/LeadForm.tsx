@@ -1,13 +1,11 @@
-import { toast } from "@/hooks/use-toast";
-import { useDatatableSearchParams } from "@/hooks/useDatatableSearchParams";
-import useSaveLead from "@/hooks/useSaveLead";
-import { capitalize, cn, formatDateToLocal } from "@/lib/utils";
-import { LEAD_STAGE_NAMES, LeadCreateWithOptIdSchema } from "@/schemas/leads";
-import { LeadCreateWithOptId } from "@/types/leads";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon } from "lucide-react";
+// React
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+
+// Icons
+import { CalendarIcon } from "lucide-react";
+
+// Components
 import Select from "@/components/ui/Select";
 import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
 import { Calendar } from "@/components/ui/shadcn/calendar";
@@ -26,6 +24,21 @@ import {
   PopoverTrigger,
 } from "@/components/ui/shadcn/popover";
 import { Switch } from "@/components/ui/shadcn/switch";
+
+// Hooks
+import { toast } from "@/hooks/use-toast";
+import { useDatatableSearchParams } from "@/hooks/useDatatableSearchParams";
+import useSaveLead from "@/hooks/useSaveLead";
+
+// Utilities
+import { capitalize, cn, formatDateToLocal } from "@/lib/utils";
+
+// Schemas
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LEAD_STAGE_NAMES, LeadCreateWithOptIdSchema } from "@/schemas/leads";
+
+// Types
+import { LeadCreateWithOptId } from "@/types/leads";
 
 interface Props {
   data: LeadCreateWithOptId;

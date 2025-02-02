@@ -1,6 +1,13 @@
+// React Query
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
+// Services
 import { getLeads } from "../services/leadService";
+
+// Types
 import { FilteringParams, PaginationParams, SortByParams } from "@/types/api";
+
+// Utilities
 import { queryKeys } from "@/lib/utils";
 
 const useLeads = (

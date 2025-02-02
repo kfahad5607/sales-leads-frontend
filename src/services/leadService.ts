@@ -1,3 +1,4 @@
+// Types
 import {
   FilteringParams,
   PaginatedResponse,
@@ -5,6 +6,8 @@ import {
   SortByParams,
 } from "../types/api";
 import { Lead, LeadCreate } from "../types/leads";
+
+// Services
 import apiClient from "./api-client";
 
 export const getLeads = async (

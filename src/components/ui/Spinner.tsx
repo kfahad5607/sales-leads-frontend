@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 interface Props {
   className?: string;
@@ -8,7 +8,7 @@ const Spinner = ({ className = "w-8 h-8" }: Props) => {
   return (
     <div
       role="status"
-      className={clsx("flex justify-center items-center", className)}
+      className={cn("flex justify-center items-center", className)}
     >
       <svg
         aria-hidden="true"

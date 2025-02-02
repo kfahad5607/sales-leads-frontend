@@ -1,30 +1,45 @@
-import DataTable, { Column } from "@/components/DataTable";
-import { MdOutlineDownloadForOffline } from "react-icons/md";
+// React
+import { useState } from "react";
 
+// Icons
+import { FaRegClock, FaRegCheckCircle } from "react-icons/fa";
+import { MdOutlineDownloadForOffline } from "react-icons/md";
+import { LuPlus } from "react-icons/lu";
+
+// Components
+import DataTable, { Column } from "@/components/DataTable";
 import LeadForm from "@/components/LeadForm";
 import Button from "@/components/ui/Button";
 import Dialog from "@/components/ui/Dialog";
 import IconBadge from "@/components/ui/IconBadge";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
+
+// Hooks
 import { toast } from "@/hooks/use-toast";
 import { useBulkDeleteLeads } from "@/hooks/useBulkDeleteLeads";
 import { useDatatableSearchParams } from "@/hooks/useDatatableSearchParams";
 import useDeleteLead from "@/hooks/useDeleteLead";
 import useLeads from "@/hooks/useLeads";
+
+// Utilities
 import { formatDateToLocal, generateArray, getInitials } from "@/lib/utils";
 import { LEAD_STAGE_MAP, LEAD_STAGE_NAMES } from "@/schemas/leads";
+
+// Services
 import { exportLeads } from "@/services/leadService";
+
+// Types
 import { Lead, LeadCreateWithOptId } from "@/types/leads";
-import { useState } from "react";
-import { FaRegClock } from "react-icons/fa";
-import { LuPlus } from "react-icons/lu";
+import { RequiredPaginationParams } from "@/types/api";
 
 type DeleteItemInfo = Pick<Lead, "id" | "email">;
 
 const getEngagedBadge = (isEngaged: boolean) => {
   if (isEngaged)
-    return <IconBadge label="Engaged" icon={<FaRegClock />} variant="green" />;
+    return (
+      <IconBadge label="Engaged" icon={<FaRegCheckCircle />} variant="green" />
+    );
   return <IconBadge label="Not Engaged" icon={<FaRegClock />} variant="gray" />;
 };
 
@@ -178,7 +193,9 @@ const AllLeads = () => {
   const { mutate } = useDeleteLead(paginationParams, filterParams, sortBy);
   const { mutate: mutateBulkDelete } = useBulkDeleteLeads();
 
-  if (error) return <h3 className="text-5xl my-3">ERROR: {error.message}</h3>;
+  console.log("error ", error);
+
+  // if (error) return <h3 className="text-5xl my-3">ERROR: {error.message}</h3>;
 
   const pagination = data
     ? {
@@ -325,17 +342,23 @@ const AllLeads = () => {
     }
   };
 
+  const onPagination = (pagination: RequiredPaginationParams) => {
+    updatePagination(pagination);
+    setSelectedRowIds(new Set());
+  };
+
   const isEdit = "id" in leadData;
 
   return (
     <div className="bg-stone-100 min-h-screen py-10 px-12 mx-auto font-inter">
       <LeadsHeader onAdd={onAdd} />
       <DataTable
+        idKey="id"
         data={data?.data}
         columns={columns}
         searchQuery={query}
+        error={error}
         isLoading={isLoading || isPlaceholderData}
-        idKey="id"
         selectedRowIds={selectedRowIds}
         sortKeys={sortKeys}
         onSort={onSort}
@@ -345,7 +368,7 @@ const AllLeads = () => {
         onDelete={onDelete}
         onBulkDelete={onBulkDelete}
         onSearch={updateSearch}
-        onPagination={updatePagination}
+        onPagination={onPagination}
         {...{ pagination }}
       />
       {/* Lead Form Dialog */}
@@ -433,7 +456,6 @@ const LeadsHeader = ({ onAdd }: LeadsHeaderProps) => {
   const filterParams = { query };
 
   const onExport = async () => {
-    console.log("onExport ");
     setIsExportLoading(true);
     await exportLeads(filterParams, sortBy);
     setIsExportLoading(false);

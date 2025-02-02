@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type Variant = "green" | "gray";
 interface Props {
@@ -29,7 +29,7 @@ const IconBadge = ({ label, variant = "green", icon }: Props) => {
 
   return (
     <div
-      className={clsx(
+      className={cn(
         "inline-flex items-center gap-x-1 py-[1px] px-1.5 font-medium text-xs rounded-sm border",
         bgColor,
         textColor,

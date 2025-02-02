@@ -1,3 +1,7 @@
+// React Query
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Types
 import {
   ErrorResponse,
   FilteringParams,
@@ -6,9 +10,12 @@ import {
   SortByParams,
 } from "@/types/api";
 import { Lead, LeadCreateWithOptId } from "@/types/leads";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Services
 import { AxiosError } from "axios";
 import { createLead, updateLead } from "../services/leadService";
+
+// Utilities
 import { queryKeys } from "@/lib/utils";
 
 const useSaveLead = (
@@ -49,6 +56,5 @@ const useSaveLead = (
     },
   });
 };
-
 
 export default useSaveLead;

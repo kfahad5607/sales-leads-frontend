@@ -1,9 +1,16 @@
-import { queryKeys } from "@/lib/utils";
+// React Query
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Types
 import { ErrorResponse } from "@/types/api";
 import { Lead } from "@/types/leads";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Services
 import { AxiosError } from "axios";
 import { bulkDeleteLeads } from "../services/leadService";
+
+// Utilities
+import { queryKeys } from "@/lib/utils";
 
 export const useBulkDeleteLeads = () => {
   const queryClient = useQueryClient();

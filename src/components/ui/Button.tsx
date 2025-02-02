@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 type Variant = "primary" | "outlined-primary";
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -25,7 +25,7 @@ const Button = ({
 }: Props) => {
   return (
     <button
-      className={clsx(baseStyles, variantStyles[variant], className)}
+      className={cn(baseStyles, variantStyles[variant], className)}
       {...props}
     >
       {icon && <span className="text-xl">{icon}</span>}
