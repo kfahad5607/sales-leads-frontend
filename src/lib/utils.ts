@@ -34,6 +34,15 @@ export const formatDateToLocal = (inputDate: string): string => {
   return date.toLocaleDateString("en-GB", options); // 'en-GB' for "day month year"
 };
 
+export const capitalize = (str: string): string => {
+  if (str.length === 0) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+export const generateArray = (n: number): number[] => {
+  return Array.from({ length: n }, (_, index) => index + 1);
+};
+
 export const getInitials = (fullName: string): string => {
   const names = fullName.split(" ");
 
@@ -84,10 +93,6 @@ export const generatePagination = (
   return buttons;
 };
 
-export const capitalize = (str: string): string => {
-  if (str.length === 0) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-};
 
 export const queryKeys = {
   base: "leads" as const,

@@ -1,6 +1,5 @@
-import DataTable from "@/components/DataTable";
+import DataTable, { Column } from "@/components/DataTable";
 import LeadForm from "@/components/LeadForm";
-import { Column } from "@/components/Table";
 import Button from "@/components/ui/Button";
 import Dialog from "@/components/ui/Dialog";
 import IconBadge from "@/components/ui/IconBadge";
@@ -11,7 +10,7 @@ import { useBulkDeleteLeads } from "@/hooks/useBulkDeleteLeads";
 import { useDatatableSearchParams } from "@/hooks/useDatatableSearchParams";
 import useDeleteLead from "@/hooks/useDeleteLead";
 import useLeads from "@/hooks/useLeads";
-import { formatDateToLocal, getInitials } from "@/lib/utils";
+import { formatDateToLocal, generateArray, getInitials } from "@/lib/utils";
 import { LEAD_STAGE_MAP, LEAD_STAGE_NAMES } from "@/schemas/leads";
 import { Lead, LeadCreateWithOptId } from "@/types/leads";
 import { useState } from "react";
@@ -43,12 +42,30 @@ const columns: Column<Lead>[] = [
         </div>
       );
     },
+    renderLoader: () => {
+      return (
+        <div className="flex items-center gap-x-2 animate-pulse">
+          <div className="bg-gray-200 size-8 rounded-full"></div>
+          <div>
+            <div className="h-2.5 w-24 bg-gray-200 rounded-full mb-1.5"></div>
+            <div className="h-2 w-32 bg-gray-200 rounded-full "></div>
+          </div>
+        </div>
+      );
+    },
   },
   {
     title: "Company",
     dataKey: "company_name",
     render: (val) => {
       return <span className="text-sm font-medium">{val}</span>;
+    },
+    renderLoader: () => {
+      return (
+        <div className="animate-pulse">
+          <div className="h-2.5 w-28 bg-gray-200 rounded-full"></div>
+        </div>
+      );
     },
   },
   {
@@ -63,6 +80,20 @@ const columns: Column<Lead>[] = [
         />
       );
     },
+    renderLoader: () => {
+      return (
+        <div className="animate-pulse">
+          <div className="flex items-stretch gap-x-0.5 h-4">
+            {generateArray(LEAD_STAGE_NAMES.length - 1).map((i) => (
+              <div
+                key={i}
+                className="w-1 h-full bg-gray-200 rounded-t-lg"
+              ></div>
+            ))}
+          </div>
+        </div>
+      );
+    },
   },
   {
     title: "Engaged",
@@ -70,6 +101,13 @@ const columns: Column<Lead>[] = [
     render: (val) => {
       const _val = val as Lead["is_engaged"];
       return <span>{getEngagedBadge(_val)}</span>;
+    },
+    renderLoader: () => {
+      return (
+        <div className="animate-pulse">
+          <div className="h-4 w-28 bg-gray-200 rounded-full"></div>
+        </div>
+      );
     },
   },
   {
@@ -81,6 +119,13 @@ const columns: Column<Lead>[] = [
         <span className="text-sm font-medium">
           {_val ? formatDateToLocal(_val) : "-"}
         </span>
+      );
+    },
+    renderLoader: () => {
+      return (
+        <div className="animate-pulse">
+          <div className="h-2.5 w-28 bg-gray-200 rounded-full"></div>
+        </div>
       );
     },
   },
@@ -130,10 +175,7 @@ const AllLeads = () => {
   const { mutate } = useDeleteLead(paginationParams, filterParams, sortBy);
   const { mutate: mutateBulkDelete } = useBulkDeleteLeads();
 
-  if (isLoading) return <h3 className="text-5xl my-3">Loading...</h3>;
   if (error) return <h3 className="text-5xl my-3">ERROR: {error.message}</h3>;
-
-  if (!data) return null;
 
   const pagination = data
     ? {
@@ -253,7 +295,7 @@ const AllLeads = () => {
     if (selection) {
       setSelectedRowIds(new Set());
     } else {
-      const allRowIds = data.data.map((row) => row.id);
+      const allRowIds = data?.data.map((row) => row.id);
       setSelectedRowIds(new Set(allRowIds));
     }
   };
@@ -298,7 +340,7 @@ const AllLeads = () => {
         </div>
       </div>
       <DataTable
-        data={data.data}
+        data={data?.data}
         columns={columns}
         searchQuery={query}
         isLoading={isLoading}

@@ -1,6 +1,6 @@
 import Button from "@/components/ui/Button";
 import { Button as ButtonShadcn } from "@/components/ui/shadcn/button";
-import { debounce, generatePagination } from "@/lib/utils";
+import { debounce, generateArray, generatePagination } from "@/lib/utils";
 import clsx from "clsx";
 import { ReactNode } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
@@ -11,7 +11,7 @@ import DropdownMenu from "@/components/ui/DropdownMenu";
 import Select from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/shadcn/checkbox";
 
-interface Column<T> {
+export interface Column<T> {
   title: string;
   dataKey: keyof T;
   render?: (
@@ -19,6 +19,7 @@ interface Column<T> {
     record: T,
     index: number
   ) => ReactNode;
+  renderLoader: () => ReactNode;
 }
 
 type BaseProps<T> = {
@@ -77,8 +78,10 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
     columns,
     data = [],
     idKey,
+    searchQuery,
     selectedRowIds,
     sortKeys,
+    isLoading,
     onSort,
     onRowSelect,
     onAllRowSelect,
@@ -95,7 +98,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
   let firstRecord = 1;
   let lastRecord = 10;
 
-  if ("pagination" in props) {
+  if ("pagination" in props && props.pagination) {
     pagination = props.pagination;
     onPagination = props.onPagination;
 
@@ -139,7 +142,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
   };
 
   const isAllSelected = () => {
-    return selectedRowIds.size === data.length;
+    return data.length > 0 && selectedRowIds.size === data.length;
   };
 
   const isSomeSelected = () => {
@@ -148,6 +151,30 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
 
   const isAtleastOneSelected = () => {
     return selectedRowIds.size > 0;
+  };
+
+  const getPaginationMsg = () => {
+    if (isLoading) {
+      return (
+        <div className="font-medium text-xs text-[#646069] mb-2">
+          Fetching new leads...
+        </div>
+      );
+    }
+
+    if (pagination) {
+      return (
+        <div className="font-medium text-xs text-[#646069] mb-2">
+          Showing {firstRecord}-{lastRecord} of {pagination.total_records} leads
+        </div>
+      );
+    }
+
+    return (
+      <div className="font-medium text-xs text-[#646069] mb-2">
+        Showing all the {data.length} leads
+      </div>
+    );
   };
 
   const handleSearchInput = debounce(onSearch, 450);
@@ -172,6 +199,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
             <LuSearch className="fill-gray-100 text-gray-600 text-xl" />
             <input
               type="search"
+              defaultValue={searchQuery}
               onChange={(e) => {
                 const val = e.currentTarget.value.trim();
                 handleSearchInput(val);
@@ -184,12 +212,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
       </div>
       {/* Head ends */}
       <div>
-        {pagination && (
-          <div className="font-medium text-xs text-[#646069] mb-2">
-            Showing {firstRecord}-{lastRecord} of {pagination.total_records}{" "}
-            leads
-          </div>
-        )}
+        {getPaginationMsg()}
         <div className="relative bg-white rounded-lg border border-[#DBDADD]">
           {isAtleastOneSelected() && (
             <div className="flex items-center h-9 bg-white px-2 absolute top-0 left-10 right-0">
@@ -201,10 +224,11 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
           <table className="w-full">
             <thead className="font-normal border-b border-[#DBDADD]">
               <tr className="px-4 py-1">
-                <th className="w-14 py-1.5 pr-2.5">
+                <th scope="col" className="w-14 py-1.5 pr-2.5">
                   <div className="flex items-center justify-center">
                     <Checkbox
                       id="select-all"
+                      disabled={isLoading}
                       checked={
                         isAllSelected() || (isSomeSelected() && "indeterminate")
                       }
@@ -214,6 +238,7 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                 </th>
                 {columns.map((col, colIdx) => (
                   <th
+                    scope="col"
                     key={colIdx}
                     onClick={(e) => onSort(col.dataKey, e.ctrlKey || e.metaKey)}
                     className="w-auto font-normal text-left text-xs text-[#646069] py-2.5 pr-2.5 cursor-pointer transition-colors duration-200 ease-out hover:bg-slate-100"
@@ -224,45 +249,69 @@ const DataTable = <TItem,>(props: Props<TItem>) => {
                     </div>
                   </th>
                 ))}
-                <th className="w-9 text-left py-1.5"></th>
+                <th scope="col" className="w-9 text-left py-1.5"></th>
               </tr>
             </thead>
-            <tbody>
-              {data.map((item, itemIdx) => (
-                <tr
-                  key={getRenderKeyVal(item, idKey, itemIdx)}
-                  className="border-b border-[#DBDADD]"
-                >
-                  <td className="px-4 py-3">
-                    <Checkbox
-                      id={`select-item-${itemIdx}`}
-                      checked={selectedRowIds.has(item[idKey])}
-                      onCheckedChange={(val) => onRowSelect(item, Boolean(val))}
-                    />
-                  </td>
-                  {columns.map((col, colIdx) => (
-                    <td key={colIdx} className="pr-2.5 py-3">
-                      {getRenderer(col)(item[col.dataKey], item, itemIdx)}
+            {isLoading ? (
+              <tbody>
+                {generateArray(10).map((item, itemIdx) => (
+                  <tr key={item} className="border-b border-[#DBDADD]">
+                    <td className="px-4 py-3">
+                      <Checkbox id={`select-item-${itemIdx}`} disabled />
                     </td>
-                  ))}
-                  <td className="w-9 py-3">
-                    <DropdownMenu
-                      triggerBtn={
-                        <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
-                          <LuEllipsisVertical className="text-[#646069] text" />
-                        </div>
-                      }
-                      label="Actions"
-                      options={rowActionOptions}
-                      onSelect={(val) => {
-                        onRowActionSelect(val, item);
-                      }}
-                      onClose={() => {}}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                    {columns.map((col, colIdx) => (
+                      <td key={colIdx} className="pr-2.5 py-3">
+                        {col.renderLoader()}
+                      </td>
+                    ))}
+                    <td className="w-9 py-3">
+                      <div className="flex items-center justify-center size-6 p-1 rounded-full opacity-60 pointer-events-none">
+                        <LuEllipsisVertical className="text-[#646069] text" />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
+              <tbody>
+                {data.map((item, itemIdx) => (
+                  <tr
+                    key={getRenderKeyVal(item, idKey, itemIdx)}
+                    className="border-b border-[#DBDADD]"
+                  >
+                    <td className="px-4 py-3">
+                      <Checkbox
+                        id={`select-item-${itemIdx}`}
+                        checked={selectedRowIds.has(item[idKey])}
+                        onCheckedChange={(val) =>
+                          onRowSelect(item, Boolean(val))
+                        }
+                      />
+                    </td>
+                    {columns.map((col, colIdx) => (
+                      <td key={colIdx} className="pr-2.5 py-3">
+                        {getRenderer(col)(item[col.dataKey], item, itemIdx)}
+                      </td>
+                    ))}
+                    <td className="w-9 py-3">
+                      <DropdownMenu
+                        triggerBtn={
+                          <div className="flex items-center justify-center size-6 p-1 rounded-full cursor-pointer transition-colors ease-in-out duration-300 hover:bg-gray-200">
+                            <LuEllipsisVertical className="text-[#646069] text" />
+                          </div>
+                        }
+                        label="Actions"
+                        options={rowActionOptions}
+                        onSelect={(val) => {
+                          onRowActionSelect(val, item);
+                        }}
+                        onClose={() => {}}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            )}
           </table>
           {pagination && (
             <div className="flex justify-between items-center py-2 px-2">
